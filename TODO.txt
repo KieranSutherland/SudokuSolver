@@ -1,5 +1,6 @@
 Processes:
-    Get camera input and find grid
+    Get camera input
+    Find grid in camera input
     Transform perspective of grid to be 2d
     Recognise numbers on the grid using tensorflow machine learning
     Solve sudoku puzzle using tensorflow machine learning
