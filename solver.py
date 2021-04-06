@@ -1,56 +1,52 @@
-from utils import display_image
 
-def isGridValid(grid):
-    # if there's less than 17 numbers resolved, it's impossible to solve
-    total_valid_nums = sum([sum([row.count(i) for i in range(1, 10)]) for row in grid])
-    total_nums = sum(len(row) for row in grid)
-    if total_valid_nums < 17:
-        print("Total valid numbers was below 17. Not valid")
-        return False
-    if total_nums != 81:
-        print("Total grid numbers was not 81. Not valid")
-        return False
+def solve(grid):
+    empty_cell = find_empty(grid)
+    if not empty_cell:  # if no more empty cells, puzzle complete
+        return grid
+    else:
+        row, col = empty_cell
 
-    # check if there are any duplicate numbers in a row, column or 3x3 grid
-    for i in range(9):
-        if not groupIsValid(grid[i]): # row
+    for num in range(1, 10):
+        if valid(grid, num, (row, col)):
+            grid[row][col] = num
+
+            if solve(grid):
+                return grid
+
+            grid[row][col] = 0
+
+    return None
+
+
+def valid(grid, num, pos):
+
+    # Check row
+    for i in range(len(grid[0])):
+        if grid[pos[0]][i] == num and pos[1] != i:
             return False
-        if not groupIsValid([grid[j][i] for j in range(9)]): # column
+
+    # Check column
+    for i in range(len(grid)):
+        if grid[i][pos[1]] == num and pos[0] != i:
             return False
-        if not groupIsValid(getBoxNums(grid, i)): # box
-            return False
+
+    # Check box
+    box_x = pos[1] // 3
+    box_y = pos[0] // 3
+
+    for i in range(box_y*3, box_y*3 + 3):
+        for j in range(box_x*3, box_x*3 + 3):
+            if grid[i][j] == num and (i, j) != pos:
+                return False
 
     return True
 
 
-def getBoxNums(grid, box_num):
-    """Return all numbers in the given box number (box_num). Must be between 0-8.
-    Below is a grid labelling what grid numbers are assigned to what box:
-    ┎─────┰─────┰─────┒
-    ┃  0  ┃  1  ┃  2  ┃
-    ┠─────╂─────╂─────┨
-    ┃  3  ┃  4  ┃  5  ┃
-    ┠─────╂─────╂─────┨
-    ┃  6  ┃  7  ┃  8  ┃
-    ┖─────┸─────┸─────┚
-    """
+def find_empty(grid):
+    for i in range(len(grid)):
+        for j in range(len(grid[0])):
+            if grid[i][j] == 0:
+                return i, j  # row, column
 
-    if box_num < 0 or box_num > 8:
-        raise Exception('Invalid argument. Must be between 0-8')
-    scr = (box_num // 3) * 3 # starting cell row
-    scc = ((box_num + 3) % 3) * 3 # starting cell column
-    return [
-        grid[scr+0][scc+0], grid[scr+0][scc+1], grid[scr+0][scc+2], 
-        grid[scr+1][scc+0], grid[scr+1][scc+1], grid[scr+1][scc+2], 
-        grid[scr+2][scc+0], grid[scr+2][scc+1], grid[scr+2][scc+2]]
-        
-
-def groupIsValid(group_array):
-    # print("validating: " + str(group_array))
-    group_array_no_zeroes = list(filter(lambda num: num != 0, group_array))
-    for num in group_array_no_zeroes:
-        if num < 0 or num > 9:
-            print("Found number below 0 or above 9!")
-            return False
-    return len(group_array_no_zeroes) == len(set(group_array_no_zeroes))
+    return None
 

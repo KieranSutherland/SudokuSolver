@@ -1,9 +1,11 @@
 from cv2 import cv2
 import tensorflow as tf
 import traceback
-from predict import resolve_numbers
+import time
+from predict import predict_grid_numbers
 from image_processing import get_individual_number_imgs, get_grid_img
-from solver import isGridValid
+from validator import is_grid_valid
+from solver import solve
 from utils import *
 
 def main():
@@ -27,17 +29,23 @@ def main():
 
             if grid_img is None:
                 continue
-                
+            
             cv2.imshow('grid', grid_img)
             grid_number_imgs = get_individual_number_imgs(grid_img)
-            resolved_grid = resolve_numbers(model, grid_number_imgs)
-            if not isGridValid(resolved_grid):
+            start = time.time()
+            predicted_grid = predict_grid_numbers(model, grid_number_imgs)
+            print("predict time: " + str(time.time() - start))
+            if not is_grid_valid(predicted_grid):
                 print("Grid is not valid, continuing to next loop and printing full grid for debug...")
-                display_gameboard(resolved_grid)
+                display_gameboard(predicted_grid)
                 continue
+            calculate_accuracy_test_img(predicted_grid) # only for testing purposes
 
-            # display_gameboard(resolved_grid)
-            calculate_accuracy_test_img(resolved_grid)
+            solved_grid = solve(predicted_grid)
+            if solved_grid is None:
+                print("COULD NOT solve the puzzle!")
+                continue
+            print("Solved the puzzle!")
     except Exception:
         print(traceback.format_exc())
 

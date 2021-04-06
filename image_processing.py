@@ -2,6 +2,7 @@ from cv2 import cv2
 import numpy as np
 from imutils import contours
 import os
+import time
 from utils import display_image
 
 def perspective_transform(image, corners):

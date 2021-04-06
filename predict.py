@@ -3,7 +3,7 @@ from cv2 import cv2
 import numpy as np
 from utils import display_image
 
-def resolve_numbers(model, grid_number_imgs):
+def predict_grid_numbers(model, grid_number_imgs):
     tmp_sudoku = [[0 for i in range(9)] for j in range(9)]
     for i in range(9):
         for j in range(9):
@@ -30,8 +30,6 @@ def resolve_numbers(model, grid_number_imgs):
                 cell_img = image[y:y + h, x:x + w]
                 cell_img = scale_and_centre(cell_img, 120)
 
-                # Writing the cleaned cells
-                cv2.imwrite("CleanedBoardCells/cell{}{}.png".format(i, j), cell_img)
                 tmp_sudoku[i][j] = predict(model, cell_img)
 
     return tmp_sudoku
