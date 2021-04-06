@@ -36,9 +36,10 @@ def calculate_accuracy_test_img(grid):
         [0, 0, 0, 0, 0, 4, 0, 6, 0], 
         [7, 6, 4, 0, 1, 0, 0, 0, 0]]
     if actual_grid == grid:
-        return "Board number resolution SUCCESSFUL"
+        print("Board number resolution SUCCESSFUL")
     else:
-        return "Board number resolution FAILED"
+        print("Board number resolution FAILED. See below for debug:")
+        display_gameboard(grid)
 
 def clean_down(capture):
     capture.release()

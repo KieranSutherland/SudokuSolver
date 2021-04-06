@@ -31,12 +31,13 @@ def main():
             cv2.imshow('grid', grid_img)
             grid_number_imgs = get_individual_number_imgs(grid_img)
             resolved_grid = resolve_numbers(model, grid_number_imgs)
-            display_gameboard(resolved_grid)
-            print(calculate_accuracy_test_img(resolved_grid))
-
             if not isGridValid(resolved_grid):
-                print("Grid is not valid, continuing to next loop...")
+                print("Grid is not valid, continuing to next loop and printing full grid for debug...")
+                display_gameboard(resolved_grid)
                 continue
+
+            # display_gameboard(resolved_grid)
+            calculate_accuracy_test_img(resolved_grid)
     except Exception:
         print(traceback.format_exc())
 
