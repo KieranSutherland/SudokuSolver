@@ -5,6 +5,7 @@ from utils import display_image
 import numpy as np
 
 def predict_grid_numbers(model, grid_number_imgs):
+    tmp_sudoku = [[0 for i in range(9)] for j in range(9)]
     processed_imgs_map = []
     for i in range(9):
         for j in range(9):
@@ -23,7 +24,9 @@ def predict_grid_numbers(model, grid_number_imgs):
 
                 processed_imgs_map.append([i, j, preprocess(model, cell_img)])
     
-    return assign_predictions_to_grid(processed_imgs_map, model)
+    if len(processed_imgs_map) == 0:
+        return tmp_sudoku
+    return assign_predictions_to_grid(processed_imgs_map, model, tmp_sudoku)
 
 def scale_and_centre(img, size, margin=20, background=0):
     """Scales and centres an image onto a new background square."""
@@ -69,8 +72,7 @@ def preprocess(model, cell_img):
 
     return image.reshape(1, 28, 28, 1)
 
-def assign_predictions_to_grid(processed_imgs_map, model):
-    tmp_sudoku = [[0 for i in range(9)] for j in range(9)]
+def assign_predictions_to_grid(processed_imgs_map, model, tmp_sudoku):
     processed_imgs = list([img_map[2] for img_map in processed_imgs_map])
     predicted_nums = model.predict(np.vstack(processed_imgs))
     predicted_nums = list([predicted_num.argmax() for predicted_num in predicted_nums])
