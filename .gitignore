@@ -1,3 +1,7 @@
 *.jpg
 *.jpeg
 *.png
+models/*/variables
+models/*/saved_model.pb
+__pycache__/
+TODO.txt

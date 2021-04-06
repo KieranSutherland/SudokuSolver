@@ -1,7 +1,12 @@
 Processes:
     Get camera input
+    Preprocess image for better recognition
     Find grid in camera input
-    Transform perspective of grid to be 2d
+    Transform perspective of grid to be 2D
     Recognise numbers on the grid using tensorflow machine learning
+    Display digits on screen until solveable solution is found (give user the option to freeze digit recognition and edit the digits manually instead)
     Solve sudoku puzzle using tensorflow machine learning
     Render the newly solved digits onto the camera output
+
+Downsample video capture for better performance?
+Add option to upload image instead

@@ -15,7 +15,7 @@ def main():
                 loss='sparse_categorical_crossentropy',
                 metrics=['accuracy'])
 
-    model.fit(training_data, training_labels, epochs=50) # loop through test data 50 times
+    model.fit(training_data, training_labels, epochs=20) # loop through test data 50 times
 
     model.evaluate(test_data, test_labels)
 
