@@ -2,37 +2,28 @@ import tensorflow as tf
 from cv2 import cv2
 import numpy as np
 from utils import display_image
+import numpy as np
 
 def predict_grid_numbers(model, grid_number_imgs):
-    tmp_sudoku = [[0 for i in range(9)] for j in range(9)]
+    processed_imgs_map = []
     for i in range(9):
         for j in range(9):
-
             image = grid_number_imgs[i][j]
             image = cv2.resize(image, (28, 28))
 
-            # thresh = 128  # define a threshold, 128 is the middle of black and white in grey scale
-            # image = cv2.threshold(image, thresh, 255, cv2.THRESH_BINARY)[1]
-
-            # Find contours
             cnts = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             cnts = cnts[0] if len(cnts) == 2 else cnts[1]
 
             for c in cnts:
                 x, y, w, h = cv2.boundingRect(c)
-
                 if (x < 3 or y < 3 or h < 3 or w < 3):
-                    # Note the number is always placed in the center
-                    # Since image is 28x28
-                    # the number will be in the center thus x >3 and y>3
-                    # Additionally any of the external lines of the sudoku will not be thicker than 3
                     continue
                 cell_img = image[y:y + h, x:x + w]
                 cell_img = scale_and_centre(cell_img, 120)
 
-                tmp_sudoku[i][j] = predict(model, cell_img)
-
-    return tmp_sudoku
+                processed_imgs_map.append([i, j, preprocess(model, cell_img)])
+    
+    return assign_predictions_to_grid(processed_imgs_map, model)
 
 def scale_and_centre(img, size, margin=20, background=0):
     """Scales and centres an image onto a new background square."""
@@ -68,17 +59,23 @@ def scale_and_centre(img, size, margin=20, background=0):
     img = cv2.copyMakeBorder(img, t_pad, b_pad, l_pad, r_pad, cv2.BORDER_CONSTANT, None, background)
     return cv2.resize(img, (size, size))
 
-def predict(model, cell_img):
+def preprocess(model, cell_img):
     image = cell_img.copy()
     # image = cv2.threshold(image, 140, 255, cv2.THRESH_BINARY)[1]
     image = cv2.resize(image, (28, 28))
     image = image.astype('float32')
-    display_img = image
     image = image.reshape(1, 28, 28, 1)
     image /= 255
 
-    pred = model.predict(image.reshape(1, 28, 28, 1), batch_size=1)
-    # print(str(pred))
-    # print("predction: " + str(pred.argmax()))
-    # display_image(display_img)
-    return pred.argmax()
+    return image.reshape(1, 28, 28, 1)
+
+def assign_predictions_to_grid(processed_imgs_map, model):
+    tmp_sudoku = [[0 for i in range(9)] for j in range(9)]
+    processed_imgs = list([img_map[2] for img_map in processed_imgs_map])
+    predicted_nums = model.predict(np.vstack(processed_imgs))
+    predicted_nums = list([predicted_num.argmax() for predicted_num in predicted_nums])
+    if len(processed_imgs_map) != len(predicted_nums):
+        raise Exception("There are less predicted digits than there are preprocessed images. Something's gone wrong!")
+    for i in range(len(processed_imgs_map)):
+        tmp_sudoku[processed_imgs_map[i][0]][processed_imgs_map[i][1]] = predicted_nums[i]
+    return tmp_sudoku

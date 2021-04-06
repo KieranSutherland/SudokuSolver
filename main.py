@@ -32,16 +32,18 @@ def main():
             
             cv2.imshow('grid', grid_img)
             grid_number_imgs = get_individual_number_imgs(grid_img)
-            start = time.time()
+            # start = time.time()
             predicted_grid = predict_grid_numbers(model, grid_number_imgs)
-            print("predict time: " + str(time.time() - start))
+            # print("predict time: " + str(time.time() - start))
             if not is_grid_valid(predicted_grid):
                 print("Grid is not valid, continuing to next loop and printing full grid for debug...")
                 display_gameboard(predicted_grid)
                 continue
+            
             calculate_accuracy_test_img(predicted_grid) # only for testing purposes
 
             solved_grid = solve(predicted_grid)
+            # display_gameboard(predicted_grid)
             if solved_grid is None:
                 print("COULD NOT solve the puzzle!")
                 continue
