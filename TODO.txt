@@ -10,3 +10,5 @@ Processes:
 
 Downsample video capture for better performance?
 Add option to upload image instead
+Find way to deal with case where grid is tilted more than 90 degrees
+add computer synthesized digits to the prediction model

@@ -7,6 +7,11 @@ from keras.layers import Conv2D, MaxPooling2D, MaxPool2D
 from keras.utils.np_utils import to_categorical
 from keras import backend as K
 import matplotlib.pyplot as plt
+import glob
+import os
+from cv2 import cv2
+import tensorflow as tf
+from PIL import Image
 
 # the data, split between train and test sets
 from keras.utils import np_utils
@@ -15,12 +20,41 @@ from sklearn.model_selection import KFold
 from tensorflow.keras import Sequential
 from tensorflow.keras.optimizers import SGD
 
-def input_data():
+def input_data_mnist():
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
+    return process_input_data(X_test, y_test, X_train, y_train)
+    
 
+def input_data_74k_digits():
+    train_imgs = []
+    train_digits = []
+    test_imgs = []
+    test_digits = []
+    SPLIT_PERCENT = 80 # 80% train, 20% test
+
+    for i in range(10):
+        pics_filenames = glob.glob('digits_model/kaggle/char74k_digits/' + str(i) + '/*.png')
+        max_train_inputs = int(len(pics_filenames) * (SPLIT_PERCENT / 100))
+        counter = 1
+        for filename in pics_filenames:
+            imgsample = Image.open(filename)
+            image = np.array(imgsample)
+            image = cv2.bitwise_not(image)
+            image = cv2.resize(image, (28, 28))
+            if counter < max_train_inputs:
+                train_imgs.append(image)
+                train_digits.append(i)
+            else:
+                test_imgs.append(image)
+                test_digits.append(i)
+            counter += 1  
+    
+    return process_input_data(np.array(test_imgs), test_digits, np.array(train_imgs), train_digits)
+    
+def process_input_data(X_test, y_test, X_train, y_train):
     # Reshape to be samples*pixels*width*height
-    X_train = X_train.reshape(X_train.shape[0], 28, 28, 1).astype('float32')
-    X_test = X_test.reshape(X_test.shape[0], 28, 28, 1).astype('float32')
+    X_train = X_train.reshape(-1, 28, 28, 1).astype('float32')
+    X_test = X_test.reshape(-1, 28, 28, 1).astype('float32')
 
     # One hot Cpde
     y_train = np_utils.to_categorical(y_train)
@@ -129,17 +163,21 @@ def test(X_train, model):
 
 
 def run():
-    X_test, y_test, X_train, y_train = input_data()
+    model = create_model()
+
+    X_test, y_test, X_train, y_train = input_data_mnist()
+    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, batch_size=200)
+    test(X_train, model)
+
+    X_test, y_test, X_train, y_train = input_data_74k_digits()
+    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, batch_size=200)
+    test(X_train, model)
 
     # Evaluate
     # accuracy, data = evaluate_model(X_train, y_train)
     # summarize_diagnostics(data)
     # summarize_performance(accuracy)
-    model = create_model()
-    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, batch_size=200)
-    # TEST
-    # for images alreday
-    test(X_train, model)
+    # model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=1, batch_size=200)
 
     # save model and architecture to single file
     model.save("models/digits_model")

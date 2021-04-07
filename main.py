@@ -10,10 +10,10 @@ from utils import *
 
 def main():
 
-    capture = cv2.VideoCapture(0)
-    capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-    capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-    capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
     model = tf.keras.models.load_model('models/digits_model')
 
     try:
@@ -22,7 +22,7 @@ def main():
                 break
 
             try:
-                grid_img = get_grid_img(capture)
+                grid_img = get_grid_img(camera)
             except:
                 print("Failed to resolve grid image")
                 continue
@@ -30,7 +30,7 @@ def main():
             if grid_img is None:
                 continue
             
-            cv2.imshow('grid', grid_img)
+            # cv2.imshow('grid', grid_img)
             grid_number_imgs = get_individual_number_imgs(grid_img)
             # start = time.time()
             predicted_grid = predict_grid_numbers(model, grid_number_imgs)
@@ -39,19 +39,19 @@ def main():
                 print("Grid is not valid, continuing to next loop and printing full grid for debug...")
                 display_gameboard(predicted_grid)
                 continue
-            
+
             calculate_accuracy_test_img(predicted_grid) # only for testing purposes
 
             solved_grid = solve(predicted_grid)
-            # display_gameboard(predicted_grid)
             if solved_grid is None:
                 print("COULD NOT solve the puzzle!")
                 continue
+            # display_gameboard(predicted_grid)
             print("Solved the puzzle!")
     except Exception:
         print(traceback.format_exc())
 
-    clean_down(capture)
+    clean_down(camera)
 
 if __name__ == "__main__":
     main()
