@@ -14,7 +14,7 @@ def main():
     camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-    model = tf.keras.models.load_model('models/digits_model')
+    model = tf.keras.models.load_model('digits_model')
 
     try:
         while True:
@@ -24,6 +24,7 @@ def main():
             try:
                 grid_img = get_grid_img(camera)
             except:
+                print(traceback.format_exc())
                 print("Failed to resolve grid image")
                 continue
 

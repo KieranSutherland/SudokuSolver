@@ -48,8 +48,8 @@ def get_individual_number_imgs(grid_img):
 
 def get_grid_img(camera):
     _, frame = camera.read()
-    original_frame = frame.copy()
-    # frame = cv2.imread('example_easy.jpg') # here for testing, delete line for production
+    # original_frame = frame.copy()
+    frame = cv2.imread('example_easy.jpg') # here for testing, delete line for production
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     image = cv2.GaussianBlur(image, (11, 11), 0)
     image = cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_MEAN_C | cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,4)
@@ -59,8 +59,8 @@ def get_grid_img(camera):
     coords = get_coords(image)
 
     # show outline of selected grid on full image
-    grid_outline = draw_grid_outline(original_frame, coords)
-    cv2.imshow("grid_outline", grid_outline)
+    # grid_outline = draw_grid_outline(original_frame, coords)
+    # cv2.imshow("grid_outline", grid_outline)
 
     transformed = perspective_transform(image, coords)
     return resize_img(transformed)

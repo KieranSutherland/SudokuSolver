@@ -180,7 +180,7 @@ def run():
     # model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=1, batch_size=200)
 
     # save model and architecture to single file
-    model.save("models/digits_model")
+    model.save("digits_model")
     print("Saved model to disk")
 
 
