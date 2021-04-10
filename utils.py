@@ -1,7 +1,7 @@
 from cv2 import cv2
 
-def display_image(img):
-    cv2.imshow('image', img)  # Display the image
+def display_image(img, label="image"):
+    cv2.imshow(str(label), img.copy())  # Display the image
     cv2.waitKey(0)  # Wait for any key to be pressed (with the image window active)
     cv2.destroyAllWindows()  # Close all windows
 

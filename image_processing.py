@@ -48,34 +48,77 @@ def get_individual_number_imgs(grid_img):
 
 def get_grid_img(camera):
     _, frame = camera.read()
-    # original_frame = frame.copy()
-    frame = cv2.imread('example_easy.jpg') # here for testing, delete line for production
+    original_frame = frame.copy()
+    # frame = cv2.imread('example_easy.jpg') # here for testing, delete line for production
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     image = cv2.GaussianBlur(image, (11, 11), 0)
-    image = cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_MEAN_C | cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,4)
+    image = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_MEAN_C | cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,4)
     # cv2.imshow("original", image)
     # display_image(image)
 
-    coords = get_coords(image)
-
+    contours = get_sorted_contours(image)
+    contour, corners = get_grid_contour(contours)
+    
     # show outline of selected grid on full image
-    # grid_outline = draw_grid_outline(original_frame, coords)
-    # cv2.imshow("grid_outline", grid_outline)
+    grid_outline = draw_grid_outline(original_frame, corners)
+    # display_image(grid_outline)
+    cv2.imshow("grid_outline", grid_outline)
 
-    transformed = perspective_transform(image, coords)
+    if contour is None:
+        return None
+
+    transformed = perspective_transform(image, corners)
     return resize_img(transformed)
 
-def draw_grid_outline(image, coords):
+def get_grid_contour(contours):
+    for contour in contours:
+        corners = get_contour_corners(contour)
+        area = calculate_area(corners)
+        # grid_outline_debug = draw_grid_outline(original_frame.copy(), corners)
+
+        if area < 80000: 
+            print("Too small")
+            # cv2.imshow("original", image)
+            # display_image(grid_outline_debug, "too small")
+            return None, None
+
+        (x, y, w, h) = cv2.boundingRect(contour.astype(np.int))
+
+        if w / 1.35 > h or h / 1.35 > w:
+            print("Not square enough")
+            # cv2.imshow("original", image)
+            # display_image(grid_outline_debug, "rectangle")
+            continue
+
+        # print("Found square")
+        # display_image(grid_outline_debug)
+        return contour, corners
+    print("Found 0 contours")
+    return None, None
+
+def calculate_area(corners):
+    n = len(corners) # of corners
+    area = 0.0
+    for i in range(n):
+        j = (i + 1) % n
+        area += corners[i][0] * corners[j][1]
+        area -= corners[j][0] * corners[i][1]
+    area = abs(area) / 2.0
+    return area
+
+def draw_grid_outline(image, corners):
+    if corners is None or len(corners) < 4:
+        return image
     for i in range(3):
-        cv2.line(image, tuple(coords[i]), tuple(coords[i+1]), (0, 255, 0), 3)
-    cv2.line(image, tuple(coords[0]), tuple(coords[3]), (0, 255, 0), 3)
+        cv2.line(image, tuple(corners[i]), tuple(corners[i+1]), (0, 255, 0), 3)
+    cv2.line(image, tuple(corners[0]), tuple(corners[3]), (0, 255, 0), 3)
     return image
 
-def perspective_transform(image, coords):
+def perspective_transform(image, corners):
     ratio = 1.2
-    tl, tr, br, bl = coords
-    widthA = np.sqrt((tl[1] - tr[1])**2 + (tl[0] - tr[1])**2)
-    widthB = np.sqrt((bl[1] - br[1])**2 + (bl[0] - br[1])**2)
+    tl, tr, br, bl = corners
+    widthA = np.sqrt((tl[1] - tr[1]) ** 2 + (tl[0] - tr[1]) ** 2)
+    widthB = np.sqrt((bl[1] - br[1]) ** 2 + (bl[0] - br[1]) ** 2)
     # heightA = np.sqrt((tl[1] - bl[1])**2 + (tl[0] - bl[1])**2)
     # heightB = np.sqrt((tr[1] - br[1])**2 + (tr[0] - br[1])**2)
     width = max(widthA, widthB) * ratio
@@ -86,25 +129,29 @@ def perspective_transform(image, coords):
         [height, 0],
         [height, width],
         [0, width]], dtype = np.float32)
-    M = cv2.getPerspectiveTransform(coords, destination)
+    M = cv2.getPerspectiveTransform(corners, destination)
     warped = cv2.warpPerspective(image, M, (int(height), int(width)))
     return warped
 
-def get_coords(image):
+def get_sorted_contours(image):
+    # kernel = np.ones((5, 5), 'uint8')
+    # dilate_img = cv2.dilate(image.copy(), kernel, iterations=1)
     contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    all_contours = sorted(contours, key = cv2.contourArea, reverse = True)
-    polygon = all_contours[0]
+    # contours_dilated, _ = cv2.findContours(dilate_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = sorted(contours, key = cv2.contourArea, reverse = True)
+    return contours[:5]
+
+def get_contour_corners(contour):
     sums = []
     diffs = []
-    
-    for point in polygon:
+    for point in contour:
         for x, y in point:
             sums.append(x + y)
             diffs.append(x - y)
             
-    top_left = polygon[np.argmin(sums)].squeeze()
-    bottom_right = polygon[np.argmax(sums)].squeeze() 
-    top_right = polygon[np.argmax(diffs)].squeeze()
-    bottom_left = polygon[np.argmin(diffs)].squeeze() 
+    top_left = contour[np.argmin(sums)].squeeze()
+    bottom_right = contour[np.argmax(sums)].squeeze() 
+    top_right = contour[np.argmax(diffs)].squeeze()
+    bottom_left = contour[np.argmin(diffs)].squeeze() 
     
     return np.array([top_left, top_right, bottom_right, bottom_left], dtype = np.float32)

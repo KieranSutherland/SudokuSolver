@@ -7,9 +7,9 @@ from image_processing import get_individual_number_imgs, get_grid_img
 from validator import is_grid_valid
 from solver import solve
 from utils import *
+import copy
 
 def main():
-
     camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
@@ -31,10 +31,11 @@ def main():
             if grid_img is None:
                 continue
             
-            # cv2.imshow('grid', grid_img)
+            cv2.imshow('grid', grid_img)
             grid_number_imgs = get_individual_number_imgs(grid_img)
             # start = time.time()
             predicted_grid = predict_grid_numbers(model, grid_number_imgs)
+            predicted_grid_original = copy.deepcopy(predicted_grid)
             # print("predict time: " + str(time.time() - start))
             if not is_grid_valid(predicted_grid):
                 print("Grid is not valid, continuing to next loop and printing full grid for debug...")
@@ -47,8 +48,10 @@ def main():
             if solved_grid is None:
                 print("COULD NOT solve the puzzle!")
                 continue
-            # display_gameboard(predicted_grid)
+            # display_gameboard(predicted_grid_original)
             print("Solved the puzzle!")
+
+            
     except Exception:
         print(traceback.format_exc())
 
