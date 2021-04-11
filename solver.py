@@ -49,4 +49,3 @@ def find_empty(grid):
                 return i, j  # row, column
 
     return None
-

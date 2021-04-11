@@ -44,3 +44,16 @@ def calculate_accuracy_test_img(grid):
 def clean_down(capture):
     capture.release()
     cv2.destroyAllWindows()
+
+def exclude_predicted_nums(solved_grid, predicted_grid):
+    exclusively_solved_nums_grid = []
+    for row in range(9):
+        temp_row = []
+        for column in range(9):
+            predicted_cell_num = predicted_grid[row][column]
+            if predicted_cell_num == 0:
+                temp_row.append(solved_grid[row][column])
+            else:
+                temp_row.append(0)
+        exclusively_solved_nums_grid.append(temp_row)
+    return exclusively_solved_nums_grid

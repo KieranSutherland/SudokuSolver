@@ -20,7 +20,9 @@ def predict_grid_numbers(model, grid_number_imgs):
                 if (x < 3 or y < 3 or h < 3 or w < 3):
                     continue
                 cell_img = image[y:y + h, x:x + w]
+                # display_image(cell_img, "before")
                 cell_img = scale_and_centre(cell_img, 120)
+                # display_image(cell_img, "after")
 
                 processed_imgs_map.append([i, j, preprocess(model, cell_img)])
     
