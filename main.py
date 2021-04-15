@@ -16,6 +16,8 @@ def main():
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
     model = tf.keras.models.load_model('digits_model')
+    predicted_grid_original = None
+    previously_solved_grids = dict()
 
     while True:
         try:
@@ -23,41 +25,54 @@ def main():
                 break
 
             _, frame = camera.read()
+            # frame = cv2.imread('example_hard.jpg') # here for testing, delete line for production
             original_frame = frame.copy()
-            grid_img, corners, destination = get_grid_img(frame)
+            grid_img, transform_matrix_inv = get_grid_img(frame)
             if grid_img is None:
                 cv2.imshow('final_img', original_frame)
                 continue
             
             grid_img_resized = resize_img(grid_img)
             grid_number_imgs = get_individual_number_imgs(grid_img_resized)
-            # start = time.time()
+            start = time.time()
             predicted_grid = predict_grid_numbers(model, grid_number_imgs)
-            predicted_grid_original = copy.deepcopy(predicted_grid)
-            # print("predict time: " + str(time.time() - start))
+            # print("1 predict time: " + str(time.time() - start))
+            # start = time.time()
 
             if not is_grid_valid(predicted_grid):
-                print("Grid is not valid, continuing to next loop and printing full grid for debug...")
+                print("Grid is not valid, continuing to next loop and printing full grid for debug:")
                 display_gameboard(predicted_grid)
                 cv2.imshow('final_img', original_frame)
                 continue
-
-            calculate_accuracy_test_img(predicted_grid) # only for testing purposes
-
-            solved_grid = solve(predicted_grid)
-            if solved_grid is None:
-                print("COULD NOT solve the puzzle!")
-                cv2.imshow('final_img', original_frame)
-                continue
-            print("Solved the puzzle!")
             
-            # grid excluding the numbers that were already there
-            solved_grid_exc_predicted = exclude_predicted_nums(solved_grid, predicted_grid_original)
+            # calculate_accuracy_test_img(predicted_grid) # only for testing purposes
+
+            if predicted_grid_original == None or predicted_grid != predicted_grid_original: # if grid is the same, no need to solve again
+                predicted_grid_original = copy.deepcopy(predicted_grid)
+                solved_grid = solve(copy.deepcopy(predicted_grid), previously_solved_grids)
+                print("2 predict time: " + str(time.time() - start))
+                start = time.time()
+                previously_solved_grids[convert_grid_to_key(predicted_grid_original)] = solved_grid
+                if solved_grid is None:
+                    print("COULD NOT solve the puzzle! Printing full grid for debug:")
+                    display_gameboard(predicted_grid)
+                    cv2.imshow('final_img', original_frame)
+                    continue
+                print("Solved the puzzle!")
+                # grid excluding the numbers that were already there
+                solved_grid_exc_predicted = exclude_predicted_nums(solved_grid, predicted_grid_original)
+            else:
+                print("Same grid as previous loop, skipping some steps for optimisation")
+            
             # generate grid image of only the solved numbers
             solution_grid_img = generate_solution_grid_img(solved_grid_exc_predicted, grid_img)
+            # print("3 predict time: " + str(time.time() - start))
+            # start = time.time()
             # merge the solved numbers grid image to the original frame image, masking them together
-            final_solution_img = generate_final_solution_img(solution_grid_img, original_frame, corners, destination)
+            final_solution_img = generate_final_solution_img(solution_grid_img, original_frame, transform_matrix_inv)
             cv2.imshow('final_img', final_solution_img)
+            # print("4 predict time: " + str(time.time() - start))
+            # start = time.time()
 
         except Exception:
             cv2.imshow('final_img', original_frame)

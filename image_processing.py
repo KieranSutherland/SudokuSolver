@@ -47,7 +47,6 @@ def get_individual_number_imgs(grid_img):
     return finalgrid
 
 def get_grid_img(frame):
-    # frame = cv2.imread('example_easy.jpg') # here for testing, delete line for production
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     image = cv2.GaussianBlur(image, (11, 11), 0)
     image = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_MEAN_C | cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,4)
@@ -62,12 +61,11 @@ def get_grid_img(frame):
     # cv2.imshow("grid_outline", grid_outline)
 
     if contour is None:
-        return None, None, None
+        return None, None
 
-    warped, destination = warp(image, corners)
-    # cv2.imshow("image after transform", warped)
+    warped_grid, transform_matrix_inv = warp(image, corners)
     
-    return warped, corners, destination
+    return warped_grid, transform_matrix_inv
 
 def get_grid_contour(contours):
     for contour in contours:
@@ -124,12 +122,12 @@ def warp(image, corners):
     height = width
     
     destination = np.array([[0, 0], [height, 0], [height, width], [0, width]], dtype = np.float32)
-
     # destination = np.linalg.pinv(destination)
-
-    transform = cv2.getPerspectiveTransform(corners, destination)
-    warped = cv2.warpPerspective(image_copy, transform, (int(height), int(width)))
-    return warped, destination
+    
+    transform_matrix = cv2.getPerspectiveTransform(corners, destination)
+    transform_matrix_inv = cv2.getPerspectiveTransform(destination, corners) # inverse to do opposite transform later
+    warped = cv2.warpPerspective(image_copy, transform_matrix, (int(height), int(width)))
+    return warped, transform_matrix_inv
 
 def get_sorted_contours(image):
     # kernel = np.ones((5, 5), 'uint8')

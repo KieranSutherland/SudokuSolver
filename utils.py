@@ -57,3 +57,6 @@ def exclude_predicted_nums(solved_grid, predicted_grid):
                 temp_row.append(0)
         exclusively_solved_nums_grid.append(temp_row)
     return exclusively_solved_nums_grid
+
+def convert_grid_to_key(grid):
+    return ''.join(str(item) for innerlist in grid for item in innerlist)

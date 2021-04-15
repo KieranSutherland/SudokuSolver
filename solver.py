@@ -1,5 +1,13 @@
+from utils import convert_grid_to_key
 
-def solve(grid):
+def solve(grid, previously_solved_grids):
+    grid_key = convert_grid_to_key(grid)
+    if grid_key in previously_solved_grids:
+        return previously_solved_grids[grid_key]
+
+    return solve_recursive(grid)
+
+def solve_recursive(grid):
     empty_cell = find_empty(grid)
     if not empty_cell:  # if no more empty cells, puzzle complete
         return grid
@@ -10,7 +18,7 @@ def solve(grid):
         if valid(grid, num, (row, col)):
             grid[row][col] = num
 
-            if solve(grid):
+            if solve_recursive(grid):
                 return grid
 
             grid[row][col] = 0
