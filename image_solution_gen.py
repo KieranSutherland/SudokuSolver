@@ -23,16 +23,16 @@ def generate_solution_grid_img(solved_grid_exc_predicted, grid_img):
     return transparent_img
     
 def generate_final_solution_img(solution_grid_img, original_frame, transform_matrix_inv):
-    solution_warped = unwarp(solution_grid_img, original_frame, transform_matrix_inv)
-    merged = merge_pics(original_frame, solution_warped)
+    solution_warped = _unwarp(solution_grid_img, original_frame, transform_matrix_inv)
+    merged = _merge_pics(original_frame, solution_warped)
     return merged
 
-def unwarp(solution_grid_img, original_frame, transform_matrix_inv):
+def _unwarp(solution_grid_img, original_frame, transform_matrix_inv):
     width, height, _ = original_frame.shape
     warp = cv2.warpPerspective(solution_grid_img, transform_matrix_inv, (height, width))
     return warp
 
-def merge_pics(original_frame, solution_warped):
+def _merge_pics(original_frame, solution_warped):
     ret, warp = cv2.threshold(solution_warped, 10, 255, cv2.THRESH_BINARY)
     mask_inv = cv2.bitwise_not(warp)
     img1_bg = cv2.bitwise_and(original_frame, original_frame, mask=mask_inv)
