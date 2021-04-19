@@ -15,6 +15,11 @@ def main():
     camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    # camera.set(cv2.CAP_PROP_FRAME_WIDTH, 10000)
+    # camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 10000)
+    # w = camera.get(cv2.CAP_PROP_FRAME_WIDTH)
+    # h = camera.get(cv2.CAP_PROP_FRAME_WIDTH)
+    # print(str(w) + "   " + str(h))
     model = tf.keras.models.load_model('digits_model')
     predicted_grid_original = None
     previously_solved_grids = dict()
@@ -23,7 +28,7 @@ def main():
         try:
             if cv2.waitKey(1) == 27: # escape key
                 break
-
+            # time.sleep(1)
             _, frame = camera.read()
             # frame = cv2.imread('example_hard.jpg') # here for testing, delete line for production
             original_frame = frame.copy()
@@ -32,12 +37,14 @@ def main():
                 cv2.imshow('final_img', original_frame)
                 continue
             
-            grid_img_resized = resize_img(grid_img)
+            cv2.imshow('grid_img', grid_img.copy())
+            grid_img_resized = resize_img(grid_img.copy())
+            cv2.imshow('grid_img_resized', grid_img_resized)
             grid_number_imgs = get_individual_number_imgs(grid_img_resized)
-            start = time.time()
+            # start = time.time()
             predicted_grid = predict_grid_numbers(model, grid_number_imgs)
-            print("1 predict time: " + str(time.time() - start))
-            start = time.time()
+            # print("1 predict time: " + str(time.time() - start))
+            # start = time.time()
 
             if not is_grid_valid(predicted_grid):
                 print("Grid is not valid, continuing to next loop and printing full grid for debug:")
@@ -50,8 +57,8 @@ def main():
             if predicted_grid_original == None or predicted_grid != predicted_grid_original: # if grid is the same, no need to solve again
                 predicted_grid_original = copy.deepcopy(predicted_grid)
                 solved_grid = solve(predicted_grid, previously_solved_grids)
-                print("2 predict time: " + str(time.time() - start))
-                start = time.time()
+                # print("2 predict time: " + str(time.time() - start))
+                # start = time.time()
                 previously_solved_grids[convert_grid_to_key(predicted_grid_original)] = solved_grid
                 if solved_grid is None:
                     print("COULD NOT solve the puzzle! Printing full grid for debug:")
@@ -73,6 +80,7 @@ def main():
         except Exception:
             cv2.imshow('final_img', original_frame)
             print(traceback.format_exc())
+            return # remove for production
 
     clean_down(camera)
 
