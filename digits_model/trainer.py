@@ -114,11 +114,11 @@ def run():
 
     X_train, y_train, X_test, y_test = input_data_mnist()
     datagen = create_datagen(X_train)
-    model.fit(datagen.flow(X_train, y_train, batch_size=86), validation_data=(X_test, y_test), epochs=20, batch_size=200)
+    model.fit(datagen.flow(X_train, y_train, batch_size=86), validation_data=(X_test, y_test), epochs=10, batch_size=200)
 
     X_train, y_train, X_test, y_test = input_data_74k_digits()
     datagen = create_datagen(X_train)
-    model.fit(datagen.flow(X_train, y_train, batch_size=86), validation_data=(X_test, y_test), epochs=20, batch_size=200)
+    model.fit(datagen.flow(X_train, y_train, batch_size=86), validation_data=(X_test, y_test), epochs=10, batch_size=200)
 
     model.save("digits_model")
     print("Saved model")

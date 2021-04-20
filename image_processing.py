@@ -6,13 +6,14 @@ import time
 from utils import display_image
 
 def resize_img(img):
-    height, width = img.shape[:2]
+    img_copy = img.copy()
+    height, width = img_copy.shape[:2]
     new_height = 252
     new_width = 252
     scaling_factor = new_height / float(height)
     if new_width/float(width) < scaling_factor:
         scaling_factor = new_width / float(width)
-    return cv2.resize(img, None, fx=scaling_factor, fy=scaling_factor, interpolation=cv2.INTER_AREA)
+    return cv2.resize(img_copy, None, fx=scaling_factor, fy=scaling_factor, interpolation=cv2.INTER_AREA)
 
 def get_individual_number_imgs(grid_img):
     edge_h = np.shape(grid_img)[0]
@@ -55,6 +56,8 @@ def get_grid_img(frame):
 
     contours = get_sorted_contours(image)
     contour, corners = get_grid_contour(contours)
+    x, y, width, height = cv2.boundingRect(contour)
+    average_grid_wh = int((int(width) + int(height)) / 2)
     
     # show outline of selected grid on full image
     # grid_outline = draw_grid_outline(frame.copy(), corners)
@@ -63,7 +66,7 @@ def get_grid_img(frame):
     if contour is None:
         return None, None
 
-    warped_grid, transform_matrix_inv = warp(image, corners)
+    warped_grid, transform_matrix_inv = warp(image, corners, average_grid_wh)
     
     return warped_grid, transform_matrix_inv
 
@@ -87,7 +90,6 @@ def get_grid_contour(contours):
             # display_image(grid_outline_debug, "rectangle")
             continue
 
-        # print("Found square")
         # display_image(grid_outline_debug)
         return contour, corners
     print("Found 0 contours")
@@ -112,28 +114,17 @@ def draw_grid_outline(image, corners):
     cv2.line(grid_outline, tuple(corners[0]), tuple(corners[3]), (0, 255, 0), 3)
     return grid_outline
 
-def warp(image, corners):
+def warp(image, corners, warp_size):
     image_copy = image.copy()
-    ratio = 1.2
-    tl, tr, br, bl = corners
-    widthA = np.sqrt((tl[1] - tr[1]) ** 2 + (tl[0] - tr[1]) ** 2)
-    widthB = np.sqrt((bl[1] - br[1]) ** 2 + (bl[0] - br[1]) ** 2)
-    width = max(widthA, widthB) * ratio
-    height = width
-    
-    destination = np.array([[0, 0], [height, 0], [height, width], [0, width]], dtype = np.float32)
-    # destination = np.linalg.pinv(destination)
-    
+    destination = np.array([[0, 0], [warp_size - 1, 0], [warp_size - 1, warp_size - 1], [0, warp_size - 1]], dtype="float32")
+
     transform_matrix = cv2.getPerspectiveTransform(corners, destination)
-    transform_matrix_inv = cv2.getPerspectiveTransform(destination, corners) # inverse to do opposite transform later
-    warped = cv2.warpPerspective(image_copy, transform_matrix, (int(height), int(width)))
+    transform_matrix_inv = cv2.getPerspectiveTransform(destination, corners) # inverse to do opposite transformation later
+    warped = cv2.warpPerspective(image_copy, transform_matrix, (warp_size, warp_size))
     return warped, transform_matrix_inv
 
 def get_sorted_contours(image):
-    # kernel = np.ones((5, 5), 'uint8')
-    # dilate_img = cv2.dilate(image.copy(), kernel, iterations=1)
     contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    # contours_dilated, _ = cv2.findContours(dilate_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = sorted(contours, key = cv2.contourArea, reverse = True)
     return contours[:5]
 

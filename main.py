@@ -37,8 +37,8 @@ def main():
                 cv2.imshow('final_img', original_frame)
                 continue
             
-            cv2.imshow('grid_img', grid_img.copy())
-            grid_img_resized = resize_img(grid_img.copy())
+            cv2.imshow('grid_img', grid_img)
+            grid_img_resized = resize_img(grid_img)
             cv2.imshow('grid_img_resized', grid_img_resized)
             grid_number_imgs = get_individual_number_imgs(grid_img_resized)
             # start = time.time()
@@ -56,10 +56,11 @@ def main():
 
             if predicted_grid_original == None or predicted_grid != predicted_grid_original: # if grid is the same, no need to solve again
                 predicted_grid_original = copy.deepcopy(predicted_grid)
-                solved_grid = solve(predicted_grid, previously_solved_grids)
+                grid_key = convert_grid_to_key(predicted_grid)
+                solved_grid = solve(predicted_grid, grid_key, previously_solved_grids)
                 # print("2 predict time: " + str(time.time() - start))
                 # start = time.time()
-                previously_solved_grids[convert_grid_to_key(predicted_grid_original)] = solved_grid
+                previously_solved_grids[grid_key] = solved_grid
                 if solved_grid is None:
                     print("COULD NOT solve the puzzle! Printing full grid for debug:")
                     display_gameboard(predicted_grid_original)
@@ -70,9 +71,12 @@ def main():
                 solved_grid_exc_predicted = exclude_predicted_nums(solved_grid, predicted_grid_original)
             else:
                 print("Same grid as previous loop, skipping some steps for optimisation")
+                if solved_grid_exc_predicted == None:
+                    solved_grid_exc_predicted = exclude_predicted_nums(solved_grid, predicted_grid_original)
             
             # generate grid image of only the solved numbers
             solution_grid_img = generate_solution_grid_img(solved_grid_exc_predicted, grid_img)
+            # cv2.imshow('solution_grid_img', solution_grid_img)
             # merge the solved numbers grid image to the original frame image, masking them together
             final_solution_img = generate_final_solution_img(solution_grid_img, original_frame, transform_matrix_inv)
             cv2.imshow('final_img', final_solution_img)

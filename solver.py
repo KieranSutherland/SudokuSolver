@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import Dict, List, Optional, Set, Tuple
 import time
-from utils import convert_grid_to_key
 
 class SudokuGrid:
     """
@@ -212,8 +211,7 @@ def depth_first_solve(grid: SudokuGrid) -> Optional[SudokuGrid]:
     return None
 
 
-def solve(grid, previously_solved_grids):
-    grid_key = convert_grid_to_key(grid)
+def solve(grid, grid_key, previously_solved_grids):
     if grid_key in previously_solved_grids:
         return previously_solved_grids[grid_key]
 
