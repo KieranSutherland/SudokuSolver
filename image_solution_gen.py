@@ -1,13 +1,12 @@
 from cv2 import cv2
 import numpy as np
-from PIL import ImageFont
 
 def generate_solution_grid_img(solved_grid_exc_predicted, grid_img):
-    # FONT = ImageFont.truetype("./Crashnumbering.ttf", 80)
     FONT = cv2.FONT_HERSHEY_DUPLEX
     CELL_WIDTH = grid_img.shape[1] // 9
     OFFSET = CELL_WIDTH // 15
-    FONT_SCALE = get_optimal_font_scale(CELL_WIDTH)
+    # FONT_SCALE = get_optimal_font_scale(CELL_WIDTH)
+    FONT_SCALE = CELL_WIDTH / 10 / 4
     transparent_img = np.zeros((grid_img.shape[1], grid_img.shape[0]), np.uint8)
     (text_height, text_width), _ = cv2.getTextSize("0", FONT, fontScale = FONT_SCALE, thickness = 1)
     for row in range(9):
@@ -15,8 +14,8 @@ def generate_solution_grid_img(solved_grid_exc_predicted, grid_img):
             if solved_grid_exc_predicted[row][column] == 0:
                 continue
             cell_num_str = str(solved_grid_exc_predicted[row][column])
-            bottom_left_x = CELL_WIDTH*column + (CELL_WIDTH - text_width) // 2 + OFFSET
-            bottom_left_y = CELL_WIDTH*(row+1) - (CELL_WIDTH - text_height) // 2 + OFFSET
+            bottom_left_x = CELL_WIDTH * column + (CELL_WIDTH - text_width) // 2 + OFFSET
+            bottom_left_y = CELL_WIDTH * (row + 1) - (CELL_WIDTH - text_height) // 2 + OFFSET
             transparent_img = cv2.putText(transparent_img, cell_num_str, (int(bottom_left_x), int(bottom_left_y)), FONT, FONT_SCALE, 255, thickness = 1, lineType = cv2.LINE_AA)
     return transparent_img
     
