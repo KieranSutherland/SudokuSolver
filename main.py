@@ -15,11 +15,6 @@ def main():
     camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-    # camera.set(cv2.CAP_PROP_FRAME_WIDTH, 10000)
-    # camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 10000)
-    # w = camera.get(cv2.CAP_PROP_FRAME_WIDTH)
-    # h = camera.get(cv2.CAP_PROP_FRAME_WIDTH)
-    # print(str(w) + "   " + str(h))
     model = tf.keras.models.load_model('digits_model')
     predicted_grid_original = None
     previously_solved_grids = dict()
@@ -30,16 +25,15 @@ def main():
                 break
             # time.sleep(1)
             _, frame = camera.read()
-            # frame = cv2.imread('example_hard.jpg') # here for testing, delete line for production
+            frame = cv2.imread('example_frames/example_hard.jpg') # here for testing, delete line for production
             original_frame = frame.copy()
             grid_img, transform_matrix_inv = get_grid_img(frame)
             if grid_img is None:
                 cv2.imshow('final_img', original_frame)
+                yield convert_frame_to_jpg(original_frame)
                 continue
             
-            cv2.imshow('grid_img', grid_img)
             grid_img_resized = resize_img(grid_img)
-            cv2.imshow('grid_img_resized', grid_img_resized)
             grid_number_imgs = get_individual_number_imgs(grid_img_resized)
             # start = time.time()
             predicted_grid = predict_grid_numbers(model, grid_number_imgs)
@@ -50,6 +44,7 @@ def main():
                 print("Grid is not valid, continuing to next loop and printing full grid for debug:")
                 display_gameboard(predicted_grid)
                 cv2.imshow('final_img', original_frame)
+                yield convert_frame_to_jpg(original_frame)
                 continue
             
             # calculate_accuracy_test_img(predicted_grid) # only for testing purposes
@@ -65,6 +60,7 @@ def main():
                     print("COULD NOT solve the puzzle! Printing full grid for debug:")
                     display_gameboard(predicted_grid_original)
                     cv2.imshow('final_img', original_frame)
+                    yield convert_frame_to_jpg(original_frame)
                     continue
                 print("Solved the puzzle!")
                 # grid excluding the numbers that were already there
@@ -76,13 +72,14 @@ def main():
             
             # generate grid image of only the solved numbers
             solution_grid_img = generate_solution_grid_img(solved_grid_exc_predicted, grid_img)
-            # cv2.imshow('solution_grid_img', solution_grid_img)
             # merge the solved numbers grid image to the original frame image, masking them together
             final_solution_img = generate_final_solution_img(solution_grid_img, original_frame, transform_matrix_inv)
             cv2.imshow('final_img', final_solution_img)
+            yield convert_frame_to_jpg(final_solution_img)
 
         except Exception:
             cv2.imshow('final_img', original_frame)
+            yield convert_frame_to_jpg(original_frame)
             print(traceback.format_exc())
             return # remove for production
 

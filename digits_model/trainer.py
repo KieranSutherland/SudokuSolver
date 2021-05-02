@@ -34,7 +34,7 @@ def input_data_74k_digits():
     SPLIT_PERCENT = 80 # 80% train, 20% test
 
     for i in range(10):
-        pics_filenames = glob.glob('digits_model/kaggle/char74k_digits/' + str(i) + '/*.png')
+        pics_filenames = glob.glob('digits_model/training/char74k_digits/' + str(i) + '/*.png')
         max_train_inputs = int(len(pics_filenames) * (SPLIT_PERCENT / 100))
         counter = 1
         for filename in pics_filenames:

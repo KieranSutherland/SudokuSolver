@@ -5,6 +5,7 @@ def display_image(img, label="image"):
     cv2.waitKey(0)  # Wait for any key to be pressed (with the image window active)
     cv2.destroyAllWindows()  # Close all windows
 
+
 def display_gameboard(sudoku):
     for i in range(len(sudoku)):
         if i % 3 == 0:
@@ -24,6 +25,7 @@ def display_gameboard(sudoku):
 
     print(" ┖─────────┸─────────┸─────────┚")
 
+
 def calculate_accuracy_test_img(grid):
     actual_grid = [
         [2, 5, 0, 0, 0, 3, 0, 9, 1], 
@@ -41,9 +43,11 @@ def calculate_accuracy_test_img(grid):
         print("Board number resolution FAILED. See below for debug:")
         display_gameboard(grid)
 
+
 def clean_down(capture):
     capture.release()
     cv2.destroyAllWindows()
+
 
 def exclude_predicted_nums(solved_grid, predicted_grid):
     exclusively_solved_nums_grid = []
@@ -58,5 +62,12 @@ def exclude_predicted_nums(solved_grid, predicted_grid):
         exclusively_solved_nums_grid.append(temp_row)
     return exclusively_solved_nums_grid
 
+
 def convert_grid_to_key(grid):
     return ''.join(str(item) for innerlist in grid for item in innerlist)
+
+
+def convert_frame_to_jpg(frame):
+    ret, buffer = cv2.imencode('.jpg', frame)
+    frame = buffer.tobytes()
+    return (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
