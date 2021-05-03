@@ -1,7 +1,2 @@
-/*.jpg
-/*.jpeg
-/*.png
 __pycache__/
 TODO.txt
-digits_model/variables/
-digits_model/saved_model.pb

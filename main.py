@@ -25,12 +25,15 @@ def main():
                 break
             # time.sleep(1)
             _, frame = camera.read()
-            frame = cv2.imread('example_frames/example_hard.jpg') # here for testing, delete line for production
+            # frame = cv2.imread('example_frames/example_hard.jpg') # here for testing, delete line for production
+            if frame is None:
+                print("No camera detected")
+                continue
             original_frame = frame.copy()
             grid_img, transform_matrix_inv = get_grid_img(frame)
             if grid_img is None:
                 cv2.imshow('final_img', original_frame)
-                yield convert_frame_to_jpg(original_frame)
+                yield convert_frame_to_jpg(original_frame) # these yeilds should be commented out if wanting to run without server
                 continue
             
             grid_img_resized = resize_img(grid_img)
@@ -81,7 +84,6 @@ def main():
             cv2.imshow('final_img', original_frame)
             yield convert_frame_to_jpg(original_frame)
             print(traceback.format_exc())
-            return # remove for production
 
     clean_down(camera)
 

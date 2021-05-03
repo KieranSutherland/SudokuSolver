@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 from keras.datasets import mnist
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
@@ -7,7 +6,6 @@ from keras.layers import Conv2D, MaxPooling2D, MaxPool2D
 from keras.utils.np_utils import to_categorical
 from keras.preprocessing.image import ImageDataGenerator
 from keras import backend as K
-import matplotlib.pyplot as plt
 import glob
 import os
 from cv2 import cv2
