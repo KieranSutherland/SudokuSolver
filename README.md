@@ -1,3 +1,6 @@
+## Demo
+Here's a real time demo of the program viewing three different puzzles, tracking the grid, solving them and placing the solved numbers where they should be relative to the grid:
+![demo](sudoku-ar-demo.gif)
 ## Requirements
 Make sure you have Python installed locally, which can be downloaded [here](https://www.python.org/downloads/).
 ## Running locally:
